@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <h1>Area Calculator</h1>
+
+    <label for="shapes">Choose a shape:</label>
+    <br></br>
+    <select id="shapes" name="shapes">
+        <option value="circle" selected>Circle</option>
+        <option value="triangle">Triangle</option>
+        <option value="rectangle">Rectangle</option>
+    </select>
+
+    <form>
+        <br></br>
+        <div id="fields">
+            <label for="radius">Radius:</label>
+            <input type="number" id="radius" name="radius">
+        </div>
+        <br></br>
+        <button type="button" id="calculate">Calculate</button>
+    </form>
+
+    <div id="result">
+        <h2>Result:</h2>
+        <p id="area"></p>
+    </div>
+
+    <script>
+        const shapesSelect = document.getElementById('shapes');
+        const fieldsDiv = document.getElementById('fields');
+        const calculateButton = document.getElementById('calculate');
+        
+
+        shapesSelect.addEventListener("change", function(){
+            const selectedShape = this.value;
+
+            let html = '';
+
+            if(selectedShape === 'circle') 
+            {
+                html = '<label for="radius">Radius:</label><input type="number" id="radius" name="radius">';
+            } 
+            else if (selectedShape === 'triangle') 
+            {
+                html = '<label for="base">Base:</label><input type="number" id="base" name="base">';
+                html += '<br></br>';
+                html += '<label for="height">Height:</label><input type="number" id="height" name="height">';
+            } 
+            else if (selectedShape === 'rectangle') 
+            {
+                html = '<label for="width">Width:</label><input type="number" id="width" name="width">';
+                html += '<br></br>';
+                html += '<label for="height">Height:</label><input type="number" id="height" name="height">';
+
+            }
+
+            fieldsDiv.innerHTML = html;
+        })
+
+        calculateButton.addEventListener("click", function(){
+            sendPrompt(shapesSelect);
+        })
+
+        function sendPrompt(shapesSelect){
+            const selectedShape = shapesSelect.value;
+            let output = {};
+
+            if(selectedShape === 'circle')
+            {
+                const radius = document.getElementById('radius').value;
+                output = {
+                    'type': selectedShape,
+                    'radius': parseFloat(radius)
+                };
+
+            }
+            else if (selectedShape === 'triangle')
+            {
+                const base = document.getElementById('base').value;
+                const height = document.getElementById('height').value;
+                output = {
+                    'type': selectedShape,
+                    'base': parseFloat(base),
+                    'height': parseFloat(height)
+                };
+            }
+            else if (selectedShape === 'rectangle')
+            {
+                const width = document.getElementById('width').value;
+                const height = document.getElementById('height').value;
+                output = {
+                    'type': selectedShape,
+                    'width': parseFloat(width),
+                    'height': parseFloat(height)
+                };
+            }
+            else{
+                alert("Please select a shape to calculate the area.");
+            }
+
+            fetch('/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(output)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Response from server:', data);
+
+                const areaText = document.getElementById('area');
+                if (data.area !== undefined) {
+                    areaText.innerText = data.area;
+                } else {
+                    areaText.innerText = 'Failed to calculate area.';
+                }
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+            }
+
+    </script>
+
+</body>
+
+</html>
