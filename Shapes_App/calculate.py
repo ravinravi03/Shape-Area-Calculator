@@ -1,42 +1,64 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, jsonify, request
 
 calculate = Blueprint('calculate', __name__)
 
 @calculate.route('/',methods=['POST'])
 def calculate_area():
-        type = request.json.get('type')
+    data = request.get_json()
 
-        if type == 'circle':
-            radius = float(request.json.get('radius'))
-            if not radius:
-                return jsonify({'error': 'Radius is required'}), 400
-            
-            area = 3.14 * radius ** 2
-            return jsonify({'area': area, 'type': 'Circle'})
+    # We check if the data is a list or a single dictionary
+    if isinstance(data, dict):
+        data = [data]
+
+    results = []
+    for shape_data in data:
+        area, error = compute_shape_area(shape_data)
+        if error:
+            return jsonify({'error': error, 'input': shape_data}), 400
         
-        elif type == 'rectangle':
-            height = float(request.json.get('height'))
-            if not height:
-                return jsonify({'error': 'Height is required'}), 400
-            
-            width = float(request.json.get('width'))
-            if not width:
-                return jsonify({'error': 'Width is required'}), 400
-            
-            area = height * width
-            return jsonify({'area': area, 'type': 'Rectangle'})
+        shape_data['area'] = area
+        results.append(shape_data)
+
+    if len(results) == 1:
+        return jsonify(results[0]), 200
+    else:
+        return jsonify(results), 200
+
+### compute_shape_area() computes the area of a shape based on its type and parameters
+def compute_shape_area(data):
+    type = data.get('type')
+
+    if type == 'circle':
+        radius = float(data.get('radius'))
+        if not radius:
+            return None, 'missing radius parameter'
         
-        elif type == 'triangle':
-            base = float(request.json.get('base'))
-            if not base:
-                return jsonify({'error': 'Base is required'}), 400
-            
-            height = float(request.json.get('height'))
-            if not height:
-                return jsonify({'error': 'Height is required'}), 400
-            
-            area = 0.5 * base * height
-            return jsonify({'area': area, 'type': 'Triangle'})
+        area = 3.14 * radius ** 2
+        return area, None
+    
+    elif type == 'rectangle':
+        height = float(data.get('height'))
+        if not height:
+            return None, 'missing height parameter'
         
-        else:
-            return jsonify({'error': 'Invalid shape'}), 400
+        width = float(data.get('width'))
+        if not width:
+            return None, 'missing width parameter'
+        
+        area = height * width
+        return area, None
+    
+    elif type == 'triangle':
+        base = float(data.get('base'))
+        if not base:
+            return None, 'missing base parameter'
+        
+        height = float(data.get('height'))
+        if not height:
+            return None, 'missing height parameter'
+        
+        area = 0.5 * base * height
+        return area, None
+    
+    else:
+        return None, 'unsupported shape'
