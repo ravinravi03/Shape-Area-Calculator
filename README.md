@@ -1,5 +1,7 @@
 # Shape Area Calculator
 
+![image](https://github.com/user-attachments/assets/4d73643c-675d-482b-be0f-84806235c277)
+
 ## Description
 This Python Flask application allows users to calculate the area of a triangle, circle or rectangle based on parameters that they input.
 
